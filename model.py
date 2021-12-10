@@ -1,9 +1,5 @@
 import tensorflow as tf
-from matplotlib import pyplot
 from tensorflow.keras import layers as L, models as M
-
-pyplot.rcParams["font.sans-serif"] = ["SimHei"]
-pyplot.rcParams["axes.unicode_minus"] = False
 
 BATCHSZIE = 8
 S = 96

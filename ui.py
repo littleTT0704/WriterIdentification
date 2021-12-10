@@ -280,15 +280,15 @@ class Prediction(Tk):
         self.path = path
 
         n = boxes(self.path)
-        l = [0]
-        for i in range(0):
+        l = []
+        for i in range(n):
             img = cv2.imread("./log/%d.png" % i)
             x = np.array(255 - color.rgb2gray(img))
             y = M.predict([x])[0]
             r = y.argsort()[0][-1]
             l.append(r)
         res = sorted(l, key=lambda x: l.count(x), reverse=True)[0]
-        # interpret(M)
+        interpret(M)
 
         Tk.__init__(self, *args, **kwargs)
         self.title("Prediction Results")
