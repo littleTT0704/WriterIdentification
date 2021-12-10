@@ -11,6 +11,8 @@ I only used the library functions provided in packages. The entire logic of the 
 
 ### Requirements
 (I'm not sure about specific requirements on the versions of the packages, so I'll just list the environment on my computer.)
+Platform: Windows
+Python 3.7.6
 ```python
 Keras==2.4.3
 lime==0.2.0.1
