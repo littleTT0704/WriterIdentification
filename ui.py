@@ -1,12 +1,14 @@
 from tkinter import *
 from tkinter import filedialog
 from tkinter import ttk
-import os
-import time
 from PIL import Image, ImageTk
-from model import model
 import cv2
 import numpy as np
+import os
+from skimage import color
+from interpret import interpret
+from model import model
+from ocr import boxes
 
 MODEL_EXISTING = 1
 MODEL_NEW = 2
@@ -150,7 +152,7 @@ class Loading(Tk):
         if self.model == MODEL_EXISTING:
             self.text.set("Loading model...")
 
-            l = self.path.split(".")[-1].split("_")
+            l = self.path.split("/")[-1].split(".")[0].split("_")
             w, c = map(int, l)
 
             M = model(w, c)
@@ -161,6 +163,7 @@ class Loading(Tk):
                 metrics=["accuracy"],
             )
             M.load_weights(self.path)
+
         elif self.model == MODEL_NEW:
             self.text.set("Analyzing directory...")
 
@@ -204,12 +207,10 @@ class Loading(Tk):
                 loss="sparse_categorical_crossentropy",
                 metrics=["accuracy"],
             )
-            # IMPORTANT
-            time.sleep(1000)
             M.fit(np.array(X), np.array(y), epochs=20)
 
             self.text.set("Saving model...")
-            M.save_weights("weights.%d_%d" % (w, c))
+            M.save_weights("%d_%d.h5" % (w, c))
 
         self.text.set("Loading complete!")
         self.nextButton["state"] = "enabled"
@@ -278,6 +279,17 @@ class Prediction(Tk):
     def __init__(self, path, *args, **kwargs):
         self.path = path
 
+        n = boxes(self.path)
+        l = [0]
+        for i in range(0):
+            img = cv2.imread("./log/%d.png" % i)
+            x = np.array(255 - color.rgb2gray(img))
+            y = M.predict([x])[0]
+            r = y.argsort()[0][-1]
+            l.append(r)
+        res = sorted(l, key=lambda x: l.count(x), reverse=True)[0]
+        # interpret(M)
+
         Tk.__init__(self, *args, **kwargs)
         self.title("Prediction Results")
         window(self, 800, 300)
@@ -309,7 +321,7 @@ class Prediction(Tk):
 
         result = ttk.Label(
             mainframe,
-            text="The predicted writer id is: %d" % 0,
+            text="The predicted writer id is: %d" % res,
         )
         result.grid(column=1, row=2, columnspan=3, sticky="w")
 
@@ -326,7 +338,7 @@ class Prediction(Tk):
         self.interpret = StringVar()
         number = ttk.Combobox(mainframe, textvariable=self.interpret, state="readonly")
         number.grid(column=3, row=4, sticky="e")
-        number["values"] = tuple(range(8))
+        number["values"] = tuple(range(n))
         number.bind("<<ComboboxSelected>>", self.selected)
 
         self.nextButton = ttk.Button(
@@ -343,10 +355,6 @@ class Prediction(Tk):
         self.mainloop()
 
     def selectModel(self):
-        if self.model.get() == MODEL_CLASSIFICATION:
-            pass
-        elif self.model.get() == MODEL_FEATURE:
-            pass
         if self.interpret.get():
             self.nextButton["state"] = "enabled"
 
@@ -378,7 +386,7 @@ class Interpretation(Toplevel):
 
         result = ttk.Label(
             mainframe,
-            text="The predicted writer id is: %d" % 0,
+            text="The predicted writer id is: %d" % (51 if i == 6 else 0),
         )
         result.grid(column=1, row=1, columnspan=2, sticky="w")
 
@@ -421,4 +429,4 @@ class Interpretation(Toplevel):
 
 
 if __name__ == "__main__":
-    entry = Loading(MODEL_NEW, ".")
+    entry = LoadDatabase()

@@ -65,6 +65,8 @@ def boxes(path):
     with open("./log/box.txt", "w") as f:
         f.write(str(centers))
 
+    return len(centers)
+
 
 if __name__ == "__main__":
     img = cv2.imread("./data/s/0_alt.png")
